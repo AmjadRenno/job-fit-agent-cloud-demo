@@ -1,5 +1,9 @@
 # Progress log
 
+## Azure migration bugfix
+
+- Escaped percent signs only at the Alembic ConfigParser boundary so URL-encoded PostgreSQL passwords retain their SQLAlchemy semantics; added a focused regression test.
+
 ## Phase 7.4 — Pre-Azure security and release gate
 
 - Audited the tracked V3 baseline, history, demo write boundary, AI/MCP, HTTP/frontend/container configuration, dependencies, and publication rights. Added exhaustive demo-write regression coverage; a clean base-image rebuild removed all Criticals, with only documented no-fix base-image High findings remaining.

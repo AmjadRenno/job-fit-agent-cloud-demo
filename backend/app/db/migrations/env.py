@@ -7,12 +7,18 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from backend.app.db.models import Base
+from backend.app.db.migrations import escape_url_for_alembic
 
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_main_option("sqlalchemy.url", os.environ.get("DATABASE_URL", config.get_main_option("sqlalchemy.url")))
+config.set_main_option(
+    "sqlalchemy.url",
+    escape_url_for_alembic(
+        os.environ.get("DATABASE_URL", config.get_main_option("sqlalchemy.url"))
+    ),
+)
 target_metadata = Base.metadata
 
 

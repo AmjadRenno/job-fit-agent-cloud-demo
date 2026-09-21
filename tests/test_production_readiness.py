@@ -2,7 +2,9 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from alembic.config import Config
 from backend.app.config import cors_origins
+from backend.app.db.migrations import escape_url_for_alembic
 from backend.app.main import app
 from scripts.run_migrations import run
 from scripts.seed_demo import require_demo_seed_mode
@@ -28,3 +30,10 @@ def test_migration_command_and_web_container_are_separate():
     assert callable(run)
     dockerfile = (Path(__file__).parents[1] / "backend" / "Dockerfile").read_text(encoding="utf-8")
     assert 'CMD ["python", "-m", "uvicorn"' in dockerfile
+
+
+def test_alembic_config_preserves_percent_encoded_database_password():
+    database_url = "postgresql+psycopg://jobfit:azure%25secret%40value@db.example/jobfit"
+    config = Config()
+    config.set_main_option("sqlalchemy.url", escape_url_for_alembic(database_url))
+    assert config.get_main_option("sqlalchemy.url") == database_url
