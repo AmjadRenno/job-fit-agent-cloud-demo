@@ -1,5 +1,9 @@
 # Progress log
 
+## First live Azure deployment
+
+- Deployed the read-only synthetic V3 demo to Azure Static Web Apps, Container Apps, and private PostgreSQL; explicit migration and idempotent seed jobs succeeded, and live acceptance verification passed.
+
 ## Azure migration bugfix
 
 - Escaped percent signs only at the Alembic ConfigParser boundary so URL-encoded PostgreSQL passwords retain their SQLAlchemy semantics; added a focused regression test.

@@ -11,7 +11,7 @@
 
 Demo records and evidence IDs are synthetic only. The repository excludes real profiles, CV text, contact details, application history, private notes, run artifacts, local volumes, `.env` files, and tokens. No secret belongs in `VITE_*`; frontend read access is not protected by a client-side secret.
 
-The UI hides disabled controls for clarity, but the API is authoritative. CORS and environment configuration remain deployment concerns. A human must make any real-world decision or action outside this demo.
+The UI hides disabled controls for clarity, but the API is authoritative. A human must make any real-world decision or action outside this demo. The live Azure deployment uses an exact Static Web Apps CORS origin (never a wildcard), stores runtime values as Container Apps secrets, and keeps PostgreSQL on private VNet integration. The backend image is pulled from ACR through a user-assigned managed identity with `AcrPull`; registry admin credentials are not used at runtime.
 
 ## Pre-Azure release gate
 
@@ -29,7 +29,8 @@ The UI hides disabled controls for clarity, but the API is authoritative. CORS a
 - A clean `--pull --no-cache` rebuild removed all backend Critical findings (before: 5 Critical / 13 High; after: 0 Critical / 4 High) without a Dockerfile or dependency change. Scout's remaining `msgpack` 1.1.2 and `setuptools` 70.3.0 records are stale SBOM-layer entries: neither package exists in the final runtime filesystem, and an isolated `pip-audit -r requirements.txt` found no known vulnerabilities. The remaining backend High is `CVE-2026-85091` in base-image `zlib`, for which Scout reports no fix.
 - The freshly rebuilt frontend remains at 0 Critical / 1 High: `CVE-2026-86140` in Alpine `libxml2`, for which Scout reports no fix. Its runtime is Nginx plus static assets only; the application does not parse untrusted XML. These two no-fix base-image findings are accepted residual risk, subject to rescan on every base-image rebuild.
 - Gitleaks scanned the current tree and all reachable history (one V3 commit) with no leaks found.
-- Cloud work still requires HTTPS/TLS at ingress, restricted PostgreSQL network exposure, managed secret storage, rate/abuse controls, and observability that redacts sensitive values.
+- Azure ingress provides HTTPS/TLS; PostgreSQL has private network exposure and runtime values are stored as managed Container Apps secrets. Rate/abuse controls and observability that redacts sensitive values remain future work.
+- A Static Web Apps deployment token exposed during troubleshooting was immediately rotated. No token, connection string, or secret is stored in this repository.
 
 ### Publication rights review
 
