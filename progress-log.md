@@ -1,5 +1,9 @@
 # Progress log
 
+## Phase 7.4 — Pre-Azure security and release gate
+
+- Audited the tracked V3 baseline, history, demo write boundary, AI/MCP, HTTP/frontend/container configuration, dependencies, and publication rights. Added exhaustive demo-write regression coverage; a clean base-image rebuild removed all Criticals, with only documented no-fix base-image High findings remaining.
+
 ## Phase 7.3 — Repository structure and documentation cleanup
 
 - Consolidated public documentation into architecture, AI/MCP, evaluation, security, and deployment guides; refreshed the public README, removed unreachable demo UI paths, and retained only reproducible local artifacts for cleanup. No runtime architecture or private data changed.

@@ -22,6 +22,41 @@ def test_demo_mode_allows_health_and_blocks_commands_before_handlers(monkeypatch
     assert response.json() == {"detail": DEMO_MODE_READ_ONLY}
 
 
+@pytest.mark.parametrize(
+    ("method", "path"),
+    [
+        ("PATCH", "/api/dashboard/jobs/00000000-0000-0000-0000-000000000000/star"),
+        ("POST", "/api/dashboard/jobs/00000000-0000-0000-0000-000000000000/seen"),
+        ("POST", "/api/applications/jobs/00000000-0000-0000-0000-000000000000"),
+        ("POST", "/api/applications/00000000-0000-0000-0000-000000000000/transition"),
+        ("POST", "/api/applications/00000000-0000-0000-0000-000000000000/cover-letter"),
+        ("POST", "/api/cover-letters/generate"),
+        ("POST", "/api/cover-letters/00000000-0000-0000-0000-000000000000/review"),
+        ("POST", "/api/sources/companies"),
+        ("PATCH", "/api/sources/companies/00000000-0000-0000-0000-000000000000"),
+        ("DELETE", "/api/sources/companies/00000000-0000-0000-0000-000000000000"),
+        ("POST", "/api/sources/companies/00000000-0000-0000-0000-000000000000/sources"),
+        ("PATCH", "/api/sources/00000000-0000-0000-0000-000000000000"),
+        ("DELETE", "/api/sources/00000000-0000-0000-0000-000000000000"),
+        ("POST", "/api/sources/00000000-0000-0000-0000-000000000000/onboarding"),
+        ("POST", "/api/sources/00000000-0000-0000-0000-000000000000/revalidate"),
+        ("POST", "/api/sources/00000000-0000-0000-0000-000000000000/approve"),
+        ("POST", "/api/workflow/analyze"),
+        ("POST", "/api/workflow/discover"),
+        ("POST", "/api/runs/daily"),
+        ("PUT", "/api/runs/schedule"),
+        ("PUT", "/api/profile"),
+    ],
+)
+def test_demo_mode_blocks_every_public_write_route_before_validation(
+    monkeypatch, method, path
+):
+    monkeypatch.setenv("APP_MODE", "demo")
+    response = TestClient(app).request(method, path, json={})
+    assert response.status_code == 403
+    assert response.json() == {"detail": DEMO_MODE_READ_ONLY}
+
+
 def test_demo_mode_blocks_daily_run_and_openai_before_client_construction(monkeypatch, tmp_path):
     monkeypatch.setenv("APP_MODE", "demo")
     with pytest.raises(RuntimeError, match=DEMO_MODE_READ_ONLY):
