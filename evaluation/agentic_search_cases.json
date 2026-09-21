@@ -1,0 +1,17 @@
+{
+  "dataset_version": "v3-agentic-search-synthetic-v1",
+  "cases": [
+    {"id":"exact-dotnet","query":".NET","category":"exact","expected_deterministic":"HIT","expected_titles":[".NET Backend Developer"],"notes":"Exact synthetic technology."},
+    {"id":"exact-react","query":"React","category":"exact","expected_deterministic":"HIT","expected_titles":["AI Product Developer","Full-stack Developer"],"notes":"Exact persisted technology."},
+    {"id":"exact-cloud","query":"Cloud / DevOps","category":"exact","expected_deterministic":"HIT","expected_titles":["Cloud / DevOps Engineer"],"notes":"Exact synthetic role title."},
+    {"id":"exact-azure","query":"Azure","category":"technology","expected_deterministic":"HIT","expected_titles":["Cloud / DevOps Engineer","Senior Platform Architect"],"notes":"Persisted description term."},
+    {"id":"exact-llm","query":"LLM","category":"technology","expected_deterministic":"HIT","expected_titles":["AI Product Developer"],"notes":"Persisted description term."},
+    {"id":"paraphrase-api","query":"server-side Microsoft APIs","category":"paraphrase","expected_deterministic":"ZERO","expected_titles":[".NET Backend Developer"],"notes":"Objective intended synthetic role; fallback candidate."},
+    {"id":"paraphrase-ai","query":"AI-powered product interface","category":"paraphrase","expected_deterministic":"ZERO","expected_titles":["AI Product Developer"],"notes":"Objective intended synthetic role; fallback candidate."},
+    {"id":"paraphrase-platform","query":"infrastructure operations specialist","category":"role_intent","expected_deterministic":"ZERO","expected_titles":["Cloud / DevOps Engineer"],"notes":"Objective intended synthetic role; fallback candidate."},
+    {"id":"role-product","query":"digital product builder","category":"role_intent","expected_deterministic":"ZERO","expected_titles":["Product Engineer"],"notes":"Objective intended synthetic role; fallback candidate."},
+    {"id":"nonsense-orbital","query":"orbital pastry engineer","category":"irrelevant","expected_deterministic":"ZERO","expected_titles":[],"notes":"No relevant synthetic job."},
+    {"id":"nonsense-quantum","query":"quantum zoology lead","category":"irrelevant","expected_deterministic":"ZERO","expected_titles":[],"notes":"No relevant synthetic job."},
+    {"id":"ambiguous-generalist","query":"software developer","category":"ambiguous","expected_deterministic":"HUMAN_REVIEW","expected_titles":[],"notes":"Broad relevance is intentionally excluded from quality scoring."}
+  ]
+}

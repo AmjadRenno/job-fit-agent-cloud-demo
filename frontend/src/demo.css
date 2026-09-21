@@ -1,0 +1,21 @@
+/* Public demo presentation only; the backend remains the authority. */
+.top::before {
+  content: "PUBLIC DEMO — SYNTHETIC DATA — READ ONLY";
+  color: #4d8d42;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.primary,
+.add,
+.source-actions,
+.danger-button,
+.profile-grid input:not([readonly]),
+.profile-grid select,
+.profile-grid textarea:not([readonly]) {
+  display: none !important;
+}
+.demo-note, .demo-profile { padding: 18px; margin-bottom: 14px; }
+.demo-note { display: grid; gap: 5px; color: var(--muted); }
+.demo-profile h3 { margin-top: 0; }
+.demo-listing { color: var(--muted); font-size: 12px; }

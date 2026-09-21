@@ -1,0 +1,10 @@
+alembic==1.19.2
+fastapi==0.141.1
+httpx==0.28.1
+openai==3.13.0
+mcp==1.30.0
+psycopg[binary]==3.3.5
+python-dotenv==1.2.3
+requests==2.34.2
+SQLAlchemy==2.0.52
+uvicorn==0.52.4

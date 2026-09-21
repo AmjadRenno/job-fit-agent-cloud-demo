@@ -1,0 +1,35 @@
+# Docker build context exclusions (root of the repository)
+
+# VCS / environments
+.git
+.venv
+**/__pycache__
+**/*.pyc
+.pytest_cache
+
+# Node / frontend artifacts
+frontend/node_modules
+frontend/dist
+frontend/.env.local
+
+# Runtime secrets and local data
+.env*
+data/*
+!data/candidate/
+!data/candidate/profile.md
+*.log
+*.sqlite*
+logs/
+.idea
+.vscode
+
+# Docs and test tooling not needed at runtime
+docs
+tests
+evaluation
+evaluation/results
+sources
+progress-log.md
+README.md
+run.ps1
+run.bat

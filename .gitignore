@@ -1,0 +1,25 @@
+# Local environment files (real values stay uncommitted; .env.example is the template)
+.env
+.env.*
+!.env.example
+.env.local
+
+# Local virtualenv, dependencies, build output
+.venv/
+node_modules/
+dist/
+
+# Python caches
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Private candidate reference documents (raw CVs and personal master profile).
+# V3 tracks only its synthetic demo profile at data/candidate/profile.md.
+data/candidate/source/
+data/candidate/*.bak
+data/candidate/*.tmp
+
+# Runtime and local verification artifacts
+data/runs/
+data/reports/
