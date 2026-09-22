@@ -1,7 +1,7 @@
 # Progress log
 
 ## GitHub Actions/OIDC Phase 1
-- GitHub Actions/OIDC Phase 1 prepared; awaiting live GitHub workflow verification.
+- GitHub Actions/OIDC Phase 1 live verification PASS; application CI Phase 2 prepared and awaiting GitHub live verification.
 
 ## Azure PostgreSQL connection-pool fix
 
