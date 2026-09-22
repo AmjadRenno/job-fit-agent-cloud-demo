@@ -1,23 +1,34 @@
-# Deployment
+# Deployment and delivery
 
-Job Fit Agent V3 has a live public-demo deployment:
+Job Fit Agent V3 is deployed as a public, read-only synthetic-data demo. The browser loads the React/Vite frontend from Azure Static Web Apps and calls the FastAPI API in Azure Container Apps directly; Static Web Apps does not proxy API traffic. See [Architecture](architecture.md#azure-runtime-and-cicd-delivery) for the complete runtime and delivery diagram.
 
-```text
-Browser -> Azure Static Web Apps -> Azure Container Apps API -> Azure Database for PostgreSQL
-```
+The frontend is hosted by Azure Static Web Apps. The FastAPI backend runs in Azure Container Apps in North Europe and pulls from Azure Container Registry through its existing managed identity. PostgreSQL Flexible Server uses private VNet integration. Runtime configuration is held in Container Apps secrets; the backend CORS configuration allows the exact Static Web Apps origin.
 
-The frontend is hosted by Azure Static Web Apps. The FastAPI backend runs in Azure Container Apps in North Europe, pulling its image from Azure Container Registry with a user-assigned managed identity and `AcrPull`. PostgreSQL Flexible Server uses private VNet integration on a separate delegated subnet. The frontend is currently in East US 2 because the intended West Europe Static Web Apps region was not eligible for this subscription. A resource-group budget is configured.
+## Delivery pipeline
 
-## Manual deployment workflow
+GitHub Actions provides the delivery path:
 
-Images are built locally with Docker and pushed manually to ACR; ACR Tasks were unavailable for this subscription. The web application never runs migrations on startup. Operators run two explicit Container Apps Jobs in order:
+1. **Application CI** runs backend `pytest -q` and the frontend production build for pull requests and pushes to `main`.
+2. On a successful push to `main`, native Git-range path detection decides whether backend, frontend, or both components changed. Documentation, tests, evaluation, local Compose, and workflow-only changes do not deploy application components.
+3. **Backend CD** receives the exact tested commit SHA, builds `acrjobfitamjadneu.azurecr.io/jobfit-backend:<sha>`, pushes it using GitHub OIDC authentication, and updates only the Container App image. The workflow verifies the exact revision image, waits for provisioning, then requires `/health` and `/ready` to return HTTP 200.
+4. **Frontend CD** checks out the same tested SHA, builds `frontend/dist` with the configured public `VITE_API_URL`, and deploys the already-built assets to the existing Static Web App using its deployment token.
 
-1. Run Alembic migrations.
-2. Run the idempotent synthetic demo seed.
-3. Deploy or update the backend revision and Static Web Apps frontend.
+When both components change, backend deployment completes successfully before frontend deployment begins. Component-specific concurrency groups prevent overlapping production deployments; running deployments are not cancelled. Backend and frontend CD workflows also retain `workflow_dispatch` as an operational fallback.
 
-The initial PostgreSQL setup allow-listed `pgcrypto` through `azure.extensions` before the first migration. Azure administration used Cloud Shell because local CLI sign-in was blocked by Conditional Access on an unregistered device. No identity/security policy was weakened.
+![CI/CD and Azure delivery architecture diagram](assets/screenshots/github-actions-ci-cd.png)
 
-The currently deployed demo is in `APP_MODE=demo` with agentic search disabled. It serves persisted synthetic data only; health/readiness, dashboard, search/facets, job detail, evidence, and browser-local stars have been manually verified. It is not a live discovery or application-submission system.
+*Rendered CI/CD and Azure delivery architecture overview. The [Mermaid architecture diagram](architecture.md#azure-runtime-and-cicd-delivery) remains the authoritative representation of the system.*
 
-Container Apps secrets hold runtime configuration. Static Web Apps is configured with the exact frontend origin for backend CORS. IaC, CI/CD, OIDC deployment, monitoring, custom domains, and automated deployment jobs are not implemented yet.
+## Authentication and image identity
+
+Backend delivery uses GitHub OIDC with `azure/login@v3`, the repository's Azure client/tenant/subscription identifiers, and no client secret or ACR admin credential. Backend images are identified and deployed by the immutable tested commit SHA, never `latest`.
+
+Frontend Static Web Apps upload uses `AZURE_STATIC_WEB_APPS_API_TOKEN`, stored only as a GitHub secret. `VITE_API_URL` is a public repository variable because Vite embeds it in browser assets; it is not a secret.
+
+## Database and demo data
+
+Migrations are explicit deployment operations; the web process does not run Alembic on startup. The synthetic demo seed is idempotent and is run separately from web startup. The deployed public environment uses `APP_MODE=demo`, with agentic search disabled by default.
+
+## Scale to zero
+
+Azure Container Apps may scale the backend to zero after inactivity. Deployment verification and the public UI use bounded retries to accommodate cold starts. Visitors may see a short loading state, typically around 10–30 seconds after inactivity; warm requests are substantially faster.
