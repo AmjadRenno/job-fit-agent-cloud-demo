@@ -60,7 +60,7 @@ jobs:
             --image "$image" \
             --only-show-errors
 
-      - name: Verify deployed revision image and wait for it to run
+      - name: Verify deployed revision image and provisioning
         shell: bash
         run: |
           set -euo pipefail
@@ -100,17 +100,21 @@ jobs:
               --output tsv 2>/dev/null || true)"
             echo "Attempt $attempt/30: running=$running_state provisioning=$provisioning_state"
 
-            if [ "$running_state" = "Running" ]; then
+            case "$provisioning_state:$running_state" in
+              *Failed*|*failed*|*Degraded*|*degraded*|*Error*|*error*)
+                echo "Container App revision entered a failure state."
+                exit 1
+                ;;
+            esac
+
+            if [ "$provisioning_state" = "Provisioned" ]; then
+              echo "Revision is provisioned; endpoint smoke checks will verify runtime availability."
               exit 0
-            fi
-            if [ "$running_state" = "Failed" ] || [ "$provisioning_state" = "Failed" ]; then
-              echo "Container App revision failed to provision."
-              exit 1
             fi
             sleep 10
           done
 
-          echo "Container App revision did not become running within five minutes."
+          echo "Container App revision did not become provisioned within five minutes."
           exit 1
 
       - name: Verify health and readiness endpoints

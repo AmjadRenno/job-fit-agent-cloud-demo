@@ -2,6 +2,7 @@
 
 ## GitHub Actions/OIDC Phase 1
 - GitHub Actions/OIDC Phase 1 and application CI Phase 2 live verification PASS; Backend CD Phase 3 prepared and awaiting first manual GitHub CD verification.
+- First Backend CD image deployment verified the immutable image but timed out by requiring `Running`; scale-to-zero revisions may be `RunningAtMaxScale` or `ScaledToZero`. The gate now requires `Provisioned` and leaves runtime proof to the bounded health/readiness checks.
 
 ## Azure PostgreSQL connection-pool fix
 
