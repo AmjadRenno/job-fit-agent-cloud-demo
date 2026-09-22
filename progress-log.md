@@ -1,5 +1,8 @@
 # Progress log
 
+## GitHub Actions/OIDC Phase 1
+- GitHub Actions/OIDC Phase 1 prepared; awaiting live GitHub workflow verification.
+
 ## Azure PostgreSQL connection-pool fix
 
 - Diagnosed readiness/API failures as per-request Engine/QueuePool creation; added one lazy shared Engine/session factory, bounded PostgreSQL pooling, shutdown disposal, and request/readiness lifecycle regression coverage. Verification: 307 passed, 1 skipped.
