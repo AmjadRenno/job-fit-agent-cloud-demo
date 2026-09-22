@@ -1,8 +1,11 @@
 # Progress log
 
 ## GitHub Actions/OIDC Phase 1
-- GitHub Actions/OIDC Phase 1 and application CI Phase 2 live verification PASS; Backend CD Phase 3 prepared and awaiting first manual GitHub CD verification.
-- First Backend CD image deployment verified the immutable image but timed out by requiring `Running`; scale-to-zero revisions may be `RunningAtMaxScale` or `ScaledToZero`. The gate now requires `Provisioned` and leaves runtime proof to the bounded health/readiness checks.
+- OIDC authentication and Application CI Phase 2 live verification PASS.
+- Backend CD attempt #1 reached immutable SHA-tagged ACR push and Container App deployment, but failed by requiring `runningState == Running` for a `minReplicas=0` app. The root cause was fixed with exact immutable-image verification plus `provisioningState == Provisioned`; `/health` and `/ready` provide runtime proof.
+- Backend CD attempt #2 PASS end-to-end: Docker build/push, Container App deployment, exact revision-image verification, and health/readiness smoke checks. No ACR admin credentials or Azure client secret are used. Backend CD Phase 3 COMPLETE. Next phase: Frontend CD to Azure Static Web Apps.
+- Frontend CD #1 PASS end-to-end: the production Vite build used the configured `VITE_API_URL`, then deployed prebuilt `frontend/dist` to the existing Azure Static Web App. `AZURE_STATIC_WEB_APPS_API_TOKEN` remains a GitHub secret; `VITE_API_URL` is a non-secret repository variable.
+- Live browser smoke test PASS: the production frontend communicates with the Azure backend; an approximately 10-second scale-to-zero cold start showed the loading/skeleton UX correctly. Frontend CD Phase 4 COMPLETE. CI, Backend CD, and Frontend CD are all live-verified. Next phase: CI/CD orchestration hardening—deploy only after successful CI, add path-aware behavior/concurrency, and avoid unnecessary production deployments.
 
 ## Azure PostgreSQL connection-pool fix
 
