@@ -12,6 +12,7 @@ import {
 
 type View = "dashboard" | "jobs" | "starred" | "companies" | "profile";
 type JobTab = "recommended" | "unseen" | "applied" | "all";
+const INITIAL_LOAD_TIMEOUT_MS = 35_000;
 
 const blank: Profile = {
   name: "Candidate",
@@ -78,6 +79,49 @@ function EmptyState({
       {action}
     </div>
   );
+}
+function StartupLoading() {
+  return (
+    <section className="startup-loading" aria-live="polite">
+      <div>
+        <p>PUBLIC DEMO</p>
+        <h1>Starting demo environment…</h1>
+        <span>
+          The backend may take up to 20–30 seconds to wake up after a period
+          of inactivity.
+        </span>
+      </div>
+      <div className="startup-skeleton" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+      </div>
+      <div className="startup-skeleton rows" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </div>
+    </section>
+  );
+}
+function withInitialLoadTimeout<T>(promise: Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(
+      () => reject(new Error("INITIAL_LOAD_TIMEOUT")),
+      INITIAL_LOAD_TIMEOUT_MS,
+    );
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timeout);
+        reject(error);
+      },
+    );
+  });
 }
 function FitScore({ job }: { job: Job }) {
   return job.latest_match && job.match_score !== null ? (
@@ -1242,6 +1286,7 @@ function App() {
   const [error, setError] = useState("");
   const refresh = async () => {
     setLoading(true);
+    setError("");
     try {
       const [
         recommended,
@@ -1252,7 +1297,7 @@ function App() {
         sourceRows,
         runRows,
         candidate,
-      ] = await Promise.all([
+      ] = await withInitialLoadTimeout(Promise.all([
         dashboardApi.jobs({
           view: "recommended",
           page_size: 100,
@@ -1277,7 +1322,7 @@ function App() {
         dashboardApi.sources(),
         dashboardApi.runs(),
         dashboardApi.profile(),
-      ]);
+      ]));
       const local = (items: Job[]) => items.map((item) => ({ ...item, starred: starredIds.includes(item.id) }));
       setDash({ recommended: local(recommended.items), unseen: local(unseen.items), applied: local(applied.items), all: local(all.items) });
       setCompanies(companyRows);
@@ -1287,9 +1332,9 @@ function App() {
       setError("");
     } catch (reason) {
       setError(
-        reason instanceof Error
-          ? reason.message
-          : "Could not load the workspace.",
+        reason instanceof Error && reason.message === "INITIAL_LOAD_TIMEOUT"
+          ? "The demo environment is taking longer than expected to start."
+          : "The demo environment is unavailable right now.",
       );
     } finally {
       setLoading(false);
@@ -1369,11 +1414,13 @@ function App() {
         </header>
         <main className="content">
           {loading ? (
-            <EmptyState title="Preparing your workspace">
-              Reading the current local server state.
-            </EmptyState>
+            <StartupLoading />
           ) : error ? (
-            <div className="error">{error}</div>
+            <div className="error startup-error" role="alert">
+              <b>Could not start the demo</b>
+              <span>{error}</span>
+              <button onClick={refresh}>Retry</button>
+            </div>
           ) : view === "dashboard" ? (
             <Dashboard
               recommended={dash.recommended}

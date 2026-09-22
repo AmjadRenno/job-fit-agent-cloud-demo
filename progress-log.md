@@ -7,6 +7,7 @@
 ## First live Azure deployment
 
 - Deployed the read-only synthetic V3 demo to Azure Static Web Apps, Container Apps, and private PostgreSQL; explicit migration and idempotent seed jobs succeeded, and live acceptance verification passed.
+- Added a shell-first cold-start state with a 35-second timeout and Retry for the scale-to-zero public demo.
 
 ## Azure migration bugfix
 

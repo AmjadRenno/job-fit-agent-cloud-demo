@@ -545,6 +545,67 @@ h3 {
   color: #a14f30;
   background: #fff0e7;
 }
+.startup-loading {
+  display: grid;
+  gap: 24px;
+  padding: 30px;
+  border: 1px solid #cfddd4;
+  border-radius: 17px;
+  background: #fbfcf7;
+}
+.startup-loading p {
+  margin: 0 0 8px;
+  color: #6d936b;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+.startup-loading h1 {
+  margin: 0 0 9px;
+  color: var(--navy);
+  font-size: 28px;
+  letter-spacing: -1.2px;
+}
+.startup-loading span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.startup-skeleton {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.startup-skeleton i {
+  display: block;
+  min-height: 82px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #e8eee8 25%, #f7faf5 40%, #e8eee8 65%);
+  background-size: 300% 100%;
+  animation: startup-shimmer 1.5s ease-in-out infinite;
+}
+.startup-skeleton.rows {
+  grid-template-columns: 1fr;
+}
+.startup-skeleton.rows i {
+  min-height: 48px;
+}
+.startup-error {
+  display: grid;
+  gap: 7px;
+  max-width: 620px;
+}
+.startup-error button {
+  width: fit-content;
+  margin-top: 5px;
+  padding: 8px 12px;
+  border: 1px solid #d39b83;
+  border-radius: 8px;
+  color: #8f452c;
+  background: #fffaf6;
+}
+@keyframes startup-shimmer {
+  to { background-position: -300% 0; }
+}
 .add {
   display: grid;
   gap: 5px;
