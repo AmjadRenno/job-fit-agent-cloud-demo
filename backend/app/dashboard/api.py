@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from backend.app.db.session import create_session_factory
+from backend.app.db.session import get_session_factory
 
 from .schemas import AnalysisRead, ApplicationRead, DashboardSnapshot, EventRead, HistoryRead, JobPage, JobRead, MatchRead, RunRead, SourceHealthRead, SourceHealthSummaryRead
 from .service import DashboardService
@@ -19,9 +19,14 @@ router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 
 def get_session() -> Generator[Session, None, None]:
-    factory = create_session_factory()
-    with factory() as session:
+    session = get_session_factory()()
+    try:
         yield session
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def authorize_dashboard(x_dashboard_token: Annotated[str | None, Header()] = None) -> None:

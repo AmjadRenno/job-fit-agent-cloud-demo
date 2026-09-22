@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from .mode import DEMO_MODE_READ_ONLY, is_demo_mode
 from .config import cors_origins
-from .db.session import create_session_factory
+from .db.session import dispose_engine, get_engine
 from sqlalchemy import text
 
 load_dotenv()
@@ -56,6 +56,11 @@ async def start_scheduler() -> None:
         asyncio.create_task(scheduler_loop())
 
 
+@app.on_event("shutdown")
+async def close_database_pool() -> None:
+    dispose_engine()
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
@@ -65,8 +70,8 @@ def health() -> dict[str, str]:
 def ready() -> dict[str, str]:
     """Readiness only checks the required database; it never calls external services."""
     try:
-        with create_session_factory()() as session:
-            session.execute(text("SELECT 1"))
+        with get_engine().connect() as connection:
+            connection.execute(text("SELECT 1"))
     except Exception as error:
         raise HTTPException(status_code=503, detail="database unavailable") from error
     return {"status": "ready"}

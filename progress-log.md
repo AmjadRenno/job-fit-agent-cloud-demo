@@ -1,5 +1,9 @@
 # Progress log
 
+## Azure PostgreSQL connection-pool fix
+
+- Diagnosed readiness/API failures as per-request Engine/QueuePool creation; added one lazy shared Engine/session factory, bounded PostgreSQL pooling, shutdown disposal, and request/readiness lifecycle regression coverage. Verification: 307 passed, 1 skipped.
+
 ## First live Azure deployment
 
 - Deployed the read-only synthetic V3 demo to Azure Static Web Apps, Container Apps, and private PostgreSQL; explicit migration and idempotent seed jobs succeeded, and live acceptance verification passed.
