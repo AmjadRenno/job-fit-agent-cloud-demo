@@ -2,10 +2,27 @@ name: Backend CD
 
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      deploy_sha:
+        description: Exact tested commit SHA to deploy.
+        required: true
+        type: string
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
 
 permissions:
   contents: read
   id-token: write
+
+concurrency:
+  group: production-backend
+  cancel-in-progress: false
 
 jobs:
   deploy-backend:
@@ -17,9 +34,12 @@ jobs:
       IMAGE_REPOSITORY: jobfit-backend
       RESOURCE_GROUP: rg-jobfit-demo-neu
       CONTAINER_APP: ca-jobfit-api-neu
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_call' && inputs.deploy_sha || github.sha }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_call' && inputs.deploy_sha || github.sha }}
 
       - name: Authenticate to Azure with OIDC
         uses: azure/login@v3
@@ -36,7 +56,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          image="${ACR_LOGIN_SERVER}/${IMAGE_REPOSITORY}:${GITHUB_SHA}"
+          image="${ACR_LOGIN_SERVER}/${IMAGE_REPOSITORY}:${DEPLOY_SHA}"
           docker build --file backend/Dockerfile --tag "$image" .
 
       - name: Authenticate Docker to Azure Container Registry
@@ -47,13 +67,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker push "${ACR_LOGIN_SERVER}/${IMAGE_REPOSITORY}:${GITHUB_SHA}"
+          docker push "${ACR_LOGIN_SERVER}/${IMAGE_REPOSITORY}:${DEPLOY_SHA}"
 
       - name: Deploy exact image to Container App
         shell: bash
         run: |
           set -euo pipefail
-          image="${ACR_LOGIN_SERVER}/${IMAGE_REPOSITORY}:${GITHUB_SHA}"
+          image="${ACR_LOGIN_SERVER}/${IMAGE_REPOSITORY}:${DEPLOY_SHA}"
           az containerapp update \
             --name "$CONTAINER_APP" \
             --resource-group "$RESOURCE_GROUP" \
@@ -72,7 +92,7 @@ jobs:
           test -n "$revision"
           echo "Waiting for revision: $revision"
 
-          expected_image="${ACR_LOGIN_SERVER}/${IMAGE_REPOSITORY}:${GITHUB_SHA}"
+          expected_image="${ACR_LOGIN_SERVER}/${IMAGE_REPOSITORY}:${DEPLOY_SHA}"
           revision_image="$(az containerapp revision show \
             --name "$CONTAINER_APP" \
             --resource-group "$RESOURCE_GROUP" \

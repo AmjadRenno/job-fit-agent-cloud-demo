@@ -12,6 +12,52 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect production deployment changes
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.paths.outputs.backend }}
+      frontend: ${{ steps.paths.outputs.frontend }}
+    steps:
+      - name: Check out push range
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Classify deployment-relevant paths
+        id: paths
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          backend=false
+          frontend=false
+
+          if [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            changed_files="$(git ls-tree --name-only -r "$AFTER_SHA")"
+          else
+            changed_files="$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA")"
+          fi
+
+          while IFS= read -r path; do
+            case "$path" in
+              backend/*|job_fit_core/*|scripts/*|data/candidate/profile.md|requirements.txt|alembic.ini|.dockerignore)
+                backend=true
+                ;;
+            esac
+            case "$path" in
+              frontend/*)
+                frontend=true
+                ;;
+            esac
+          done <<< "$changed_files"
+
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
+          echo "frontend=$frontend" >> "$GITHUB_OUTPUT"
+
   backend:
     name: Backend tests
     runs-on: ubuntu-latest
@@ -56,3 +102,57 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+
+  deploy-backend:
+    name: Deploy backend to production
+    needs: [changes, backend, frontend]
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.changes.outputs.backend == 'true' &&
+      needs.backend.result == 'success' &&
+      needs.frontend.result == 'success'
+    uses: ./.github/workflows/backend-cd.yml
+    with:
+      deploy_sha: ${{ github.sha }}
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    permissions:
+      contents: read
+      id-token: write
+
+  deploy-frontend:
+    name: Deploy frontend to production
+    needs: [changes, backend, frontend]
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.changes.outputs.frontend == 'true' &&
+      needs.backend.result == 'success' &&
+      needs.frontend.result == 'success' &&
+      needs.changes.outputs.backend != 'true'
+    uses: ./.github/workflows/frontend-cd.yml
+    with:
+      deploy_sha: ${{ github.sha }}
+    secrets:
+      AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+
+  deploy-frontend-after-backend:
+    name: Deploy frontend after backend to production
+    needs: [changes, backend, frontend, deploy-backend]
+    if: >-
+      always() &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.changes.outputs.backend == 'true' &&
+      needs.changes.outputs.frontend == 'true' &&
+      needs.backend.result == 'success' &&
+      needs.frontend.result == 'success' &&
+      needs.deploy-backend.result == 'success'
+    uses: ./.github/workflows/frontend-cd.yml
+    with:
+      deploy_sha: ${{ github.sha }}
+    secrets:
+      AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}

@@ -2,20 +2,37 @@ name: Frontend CD
 
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      deploy_sha:
+        description: Exact tested commit SHA to deploy.
+        required: true
+        type: string
+    secrets:
+      AZURE_STATIC_WEB_APPS_API_TOKEN:
+        required: true
 
 permissions:
   contents: read
+
+concurrency:
+  group: production-frontend
+  cancel-in-progress: false
 
 jobs:
   deploy-frontend:
     name: Build and deploy frontend
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_call' && inputs.deploy_sha || github.sha }}
     defaults:
       run:
         working-directory: frontend
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_call' && inputs.deploy_sha || github.sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
