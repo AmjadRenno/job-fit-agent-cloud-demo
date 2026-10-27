@@ -2,9 +2,9 @@
 
 Job Fit Agent turns a job posting into a reviewable fit assessment: structured requirements, evidence-backed matches, explicit gaps, confidence, and a recommendation. It is designed to keep consequential decisions with a person.
 
-**[Open the public demo](https://calm-wave-00271bf0f.4.azurestaticapps.net)**
+**Deployment status:** Previously deployed and verified on Microsoft Azure (September 2026). The Azure resources were intentionally decommissioned in October 2026 to avoid ongoing cloud charges. **No live hosted demo is currently available.** The application can be run locally using the instructions below.
 
-> The public demo is read-only and uses synthetic candidate, job, and evidence data only. It never discovers live jobs, submits applications, or contacts external sources. The Azure Container Apps backend scales to zero, so the first load after inactivity can take roughly 10–30 seconds.
+> The former public Azure demo was read-only and used synthetic candidate, job, and evidence data only. It did not discover live jobs, submit applications, or contact external sources. [View the Azure deployment and delivery documentation](docs/deployment.md).
 
 ## What it demonstrates
 
@@ -34,7 +34,7 @@ React + TypeScript UI -> FastAPI API -> PostgreSQL
                      job_fit_core matching
 ```
 
-The demo seeds six synthetic jobs with validated persisted analyses and matches. The public UI reads those records through FastAPI; matching and evidence remain server-side.
+The local demo seeds six synthetic jobs with validated persisted analyses and matches. The UI reads those records through FastAPI; matching and evidence remain server-side.
 
 The application architecture above stays separate from the production runtime and delivery path:
 
@@ -122,7 +122,7 @@ Pop-Location
 
 ## Delivery
 
-Pull requests run backend tests and a frontend production build. A successful push to `main` can deploy only the affected component: backend changes build an immutable SHA-tagged image and update Azure Container Apps; frontend changes build and deploy `frontend/dist` to the existing Azure Static Web App. Manual deployment workflows remain available as an operational fallback. See [Deployment](docs/deployment.md).
+Pull requests and pushes to `main` run backend tests and a frontend production build. **Automatic Azure deployments are disabled** because the cloud resources were decommissioned. Historical Azure deployment workflows remain in the repository for portfolio review; they cannot successfully deploy without recreating the Azure infrastructure and reconfiguring credentials. See [Deployment](docs/deployment.md) and [successful historical backend](https://github.com/AmjadRenno/job-fit-agent-cloud-demo/actions/runs/35699258929) and [frontend](https://github.com/AmjadRenno/job-fit-agent-cloud-demo/actions/runs/35700203603) deployment runs.
 
 ## Documentation
 
